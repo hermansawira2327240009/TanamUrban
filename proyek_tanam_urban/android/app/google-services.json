@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "378073881524",
+    "firebase_url": "https://tanam-urban-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "tanam-urban",
+    "storage_bucket": "tanam-urban.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:378073881524:android:e6eb5ac0e6e444224d30e1",
+        "android_client_info": {
+          "package_name": "com.example.proyek_tanam_urban"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbXAc5xj52rVCO4LImT5uDS_mPd4wGdEk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
