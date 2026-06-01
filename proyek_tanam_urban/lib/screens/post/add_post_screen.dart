@@ -390,7 +390,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
             const SizedBox(height: 16),
 
             DropdownButtonFormField<String>(
-              value: selectedStatus,
+              initialValue: selectedStatus,
               decoration: InputDecoration(
                 labelText: 'Status Kematangan',
                 prefixIcon: const Icon(Icons.spa),
