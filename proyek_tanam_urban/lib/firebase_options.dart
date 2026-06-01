@@ -90,4 +90,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'tanam-urban.firebasestorage.app',
     measurementId: 'G-7WJ47FTXYG',
   );
+
 }
