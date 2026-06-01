@@ -99,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profil'),
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: Colors.white,
         centerTitle: true,
       ),
@@ -229,7 +229,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 isSaving ? 'Menyimpan...' : 'Simpan Perubahan',
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).scaffoldBackgroundColor,
                                 foregroundColor: Colors.white,
                               ),
                             ),
