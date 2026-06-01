@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 class DetailScreen extends StatefulWidget {
   final String postId;
   final Map<String, dynamic> postData;
+  
 
   const DetailScreen({
     super.key,
@@ -23,6 +24,8 @@ class DetailScreen extends StatefulWidget {
 class _DetailScreenState extends State<DetailScreen> {
   final TextEditingController commentController = TextEditingController();
   bool isSendingComment = false;
+  bool isFavorite = false;
+  bool isFavoriteLoading = true;
 
   String formatDate(dynamic timestamp) {
     if (timestamp == null) return '-';
@@ -152,11 +155,20 @@ class _DetailScreenState extends State<DetailScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F8E9),
-      appBar: AppBar(
+            appBar: AppBar(
         title: const Text('Detail Postingan'),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: isFavoriteLoading ? null : toggleFavorite,
+            icon: Icon(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: isFavorite ? Colors.red : Colors.white,
+            ),
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -463,4 +475,82 @@ class _DetailScreenState extends State<DetailScreen> {
       ),
     );
   }
+  @override
+void initState() {
+  super.initState();
+  checkFavoriteStatus();
+}
+
+Future<void> checkFavoriteStatus() async {
+  final User? user = FirebaseAuth.instance.currentUser;
+
+  if (user == null) {
+    setState(() {
+      isFavoriteLoading = false;
+    });
+    return;
+  }
+
+  final favoriteDoc = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .collection('favorites')
+      .doc(widget.postId)
+      .get();
+
+  setState(() {
+    isFavorite = favoriteDoc.exists;
+    isFavoriteLoading = false;
+  });
+}
+
+Future<void> toggleFavorite() async {
+  final User? user = FirebaseAuth.instance.currentUser;
+
+  if (user == null) {
+    showMessage('User belum login');
+    return;
+  }
+
+  final favoriteRef = FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .collection('favorites')
+      .doc(widget.postId);
+
+  try {
+    if (isFavorite) {
+      await favoriteRef.delete();
+
+      setState(() {
+        isFavorite = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Dihapus dari favorit'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } else {
+      await favoriteRef.set({
+        'postId': widget.postId,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      setState(() {
+        isFavorite = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ditambahkan ke favorit'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  } catch (e) {
+    showMessage('Gagal mengubah favorit: $e');
+  }
+}
 }
