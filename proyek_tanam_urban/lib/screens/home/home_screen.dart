@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import '../detail/detail_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -101,7 +102,15 @@ class HomeScreen extends StatelessWidget {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(18),
                   onTap: () {
-                    // Nanti diarahkan ke DetailScreen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailScreen(
+                          postId: posts[index].id,
+                          postData: data,
+                        ),
+                      ),
+                    );
                   },
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
