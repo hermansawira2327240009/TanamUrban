@@ -323,7 +323,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 decoration: BoxDecoration(
                   color: Theme.of(
                     context,
-                  ).colorScheme.primary.withOpacity(0.08),
+                  ).colorScheme.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
                     color: Theme.of(context).colorScheme.primary,
@@ -406,7 +406,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
             const SizedBox(height: 16),
 
             DropdownButtonFormField<String>(
-              value: selectedStatus,
+              initialValue: selectedStatus,
               decoration: InputDecoration(
                 labelText: 'Status Kematangan',
                 prefixIcon: Icon(
@@ -492,7 +492,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
             const SizedBox(height: 16),
 
             Card(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.06),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
               elevation: 2,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),

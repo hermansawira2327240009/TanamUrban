@@ -199,7 +199,7 @@ class FavoriteScreen extends StatelessWidget {
                                         height: 140,
                                         color: Theme.of(
                                           context,
-                                        ).colorScheme.primary.withOpacity(0.08),
+                                        ).colorScheme.primary.withValues(alpha: 0.08),
                                         child: Icon(
                                           Icons.image_not_supported,
                                           color: Theme.of(
@@ -214,7 +214,7 @@ class FavoriteScreen extends StatelessWidget {
                                     height: 140,
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.primary.withOpacity(0.08),
+                                    ).colorScheme.primary.withValues(alpha: 0.08),
                                     child: Icon(
                                       Icons.eco,
                                       color: Theme.of(

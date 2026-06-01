@@ -130,7 +130,7 @@ class HomeScreen extends StatelessWidget {
                                 height: 190,
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.primary.withOpacity(0.08),
+                                ).colorScheme.primary.withValues(alpha: 0.08),
                                 child: Center(
                                   child: Icon(
                                     Icons.image_not_supported,
@@ -150,7 +150,7 @@ class HomeScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: Theme.of(
                               context,
-                            ).colorScheme.primary.withOpacity(0.08),
+                            ).colorScheme.primary.withValues(alpha: 0.08),
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(18),
                             ),

@@ -178,7 +178,7 @@ class _DetailScreenState extends State<DetailScreen> {
                         height: 240,
                         color: Theme.of(
                           context,
-                        ).colorScheme.primary.withOpacity(0.08),
+                        ).colorScheme.primary.withValues(alpha: 0.08),
                         child: Icon(
                           Icons.image_not_supported,
                           size: 60,
@@ -191,7 +191,7 @@ class _DetailScreenState extends State<DetailScreen> {
                     height: 240,
                     color: Theme.of(
                       context,
-                    ).colorScheme.primary.withOpacity(0.08),
+                    ).colorScheme.primary.withValues(alpha: 0.08),
                     child: Icon(
                       Icons.eco,
                       size: 70,
@@ -324,7 +324,7 @@ class _DetailScreenState extends State<DetailScreen> {
           const SizedBox(height: 12),
 
           Card(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.06),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
             elevation: 2,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
