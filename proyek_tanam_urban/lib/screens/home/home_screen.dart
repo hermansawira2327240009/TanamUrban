@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -60,9 +61,7 @@ class HomeScreen extends StatelessWidget {
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
@@ -88,9 +87,10 @@ class HomeScreen extends StatelessWidget {
 
               final fruitName = data['fruitName'] ?? 'Tanpa Nama';
               final description = data['description'] ?? '';
-              final imageUrl = data['imageUrl'] ?? '';
+              final imageBase64 = data['imageBase64'] ?? '';
               final ripenessStatus = data['ripenessStatus'] ?? '';
-              final locationName = data['locationName'] ?? 'Lokasi tidak diketahui';
+              final locationName =
+                  data['locationName'] ?? 'Lokasi tidak diketahui';
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 16),
@@ -106,13 +106,13 @@ class HomeScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (imageUrl.isNotEmpty)
+                      if (imageBase64.isNotEmpty)
                         ClipRRect(
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(18),
                           ),
-                          child: Image.network(
-                            imageUrl,
+                          child: Image.memory(
+                            base64Decode(imageBase64),
                             width: double.infinity,
                             height: 190,
                             fit: BoxFit.cover,
