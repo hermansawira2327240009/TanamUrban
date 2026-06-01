@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'firebase_options.dart';
@@ -16,18 +14,8 @@ void main() async {
   );
 
   runApp(const TanamUrbanApp());
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  runApp(const TanamUrbanApp());
 }
 
-class TanamUrbanApp extends StatelessWidget {
-  const TanamUrbanApp({super.key});
 class TanamUrbanApp extends StatelessWidget {
   const TanamUrbanApp({super.key});
 
@@ -36,22 +24,7 @@ class TanamUrbanApp extends StatelessWidget {
     return MaterialApp(
       title: 'TanamUrban',
       debugShowCheckedModeBanner: false,
-      title: 'TanamUrban',
-      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
-        ),
-        useMaterial3: true,
-      ),
-      home: const Scaffold(
-        body: Center(
-          child: Text(
-            'TanamUrban berhasil terhubung ke Firebase',
-            style: TextStyle(fontSize: 18),
-          ),
-        ),
-      ),
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.green,
         ),
