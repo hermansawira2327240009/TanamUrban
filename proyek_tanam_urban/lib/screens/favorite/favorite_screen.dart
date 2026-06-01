@@ -53,9 +53,9 @@ class FavoriteScreen extends StatelessWidget {
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Posting dihapus dari favorit'),
-          backgroundColor: Colors.orange,
+        SnackBar(
+          content: const Text('Posting dihapus dari favorit'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -67,18 +67,16 @@ class FavoriteScreen extends StatelessWidget {
 
     if (user == null) {
       return const Scaffold(
-        body: Center(
-          child: Text('Silakan login terlebih dahulu'),
-        ),
+        body: Center(child: Text('Silakan login terlebih dahulu')),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F8E9),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Favorit'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -90,15 +88,11 @@ class FavoriteScreen extends StatelessWidget {
             .snapshots(),
         builder: (context, favoriteSnapshot) {
           if (favoriteSnapshot.hasError) {
-            return const Center(
-              child: Text('Gagal memuat favorit'),
-            );
+            return const Center(child: Text('Gagal memuat favorit'));
           }
 
           if (favoriteSnapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (!favoriteSnapshot.hasData ||
@@ -129,14 +123,11 @@ class FavoriteScreen extends StatelessWidget {
               return FutureBuilder<DocumentSnapshot?>(
                 future: getPostData(postId),
                 builder: (context, postSnapshot) {
-                  if (postSnapshot.connectionState ==
-                      ConnectionState.waiting) {
+                  if (postSnapshot.connectionState == ConnectionState.waiting) {
                     return const Card(
                       child: Padding(
                         padding: EdgeInsets.all(20),
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                        child: Center(child: CircularProgressIndicator()),
                       ),
                     );
                   }
@@ -149,9 +140,7 @@ class FavoriteScreen extends StatelessWidget {
                           color: Colors.orange,
                         ),
                         title: const Text('Posting tidak ditemukan'),
-                        subtitle: const Text(
-                          'Posting mungkin sudah dihapus.',
-                        ),
+                        subtitle: const Text('Posting mungkin sudah dihapus.'),
                         trailing: IconButton(
                           icon: const Icon(Icons.delete),
                           onPressed: () {
@@ -204,15 +193,18 @@ class FavoriteScreen extends StatelessWidget {
                                     width: 120,
                                     height: 140,
                                     fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) {
+                                    errorBuilder: (context, error, stackTrace) {
                                       return Container(
                                         width: 120,
                                         height: 140,
-                                        color: Colors.green.shade100,
-                                        child: const Icon(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary.withOpacity(0.08),
+                                        child: Icon(
                                           Icons.image_not_supported,
-                                          color: Colors.green,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
                                         ),
                                       );
                                     },
@@ -220,10 +212,14 @@ class FavoriteScreen extends StatelessWidget {
                                 : Container(
                                     width: 120,
                                     height: 140,
-                                    color: Colors.green.shade100,
-                                    child: const Icon(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.08),
+                                    child: Icon(
                                       Icons.eco,
-                                      color: Colors.green,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                       size: 40,
                                     ),
                                   ),
@@ -261,8 +257,9 @@ class FavoriteScreen extends StatelessWidget {
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
-                                            color:
-                                                getStatusColor(ripenessStatus),
+                                            color: getStatusColor(
+                                              ripenessStatus,
+                                            ),
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -276,8 +273,10 @@ class FavoriteScreen extends StatelessWidget {
                                     description,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.black87,
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium?.color,
                                     ),
                                   ),
 
@@ -285,10 +284,12 @@ class FavoriteScreen extends StatelessWidget {
 
                                   Row(
                                     children: [
-                                      const Icon(
+                                      Icon(
                                         Icons.location_on,
                                         size: 16,
-                                        color: Colors.red,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
                                       ),
                                       const SizedBox(width: 4),
                                       Expanded(
@@ -296,8 +297,10 @@ class FavoriteScreen extends StatelessWidget {
                                           locationName,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            color: Colors.black54,
+                                          style: TextStyle(
+                                            color: Theme.of(
+                                              context,
+                                            ).textTheme.bodySmall?.color,
                                             fontSize: 13,
                                           ),
                                         ),
@@ -310,9 +313,9 @@ class FavoriteScreen extends StatelessWidget {
                           ),
 
                           IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.favorite,
-                              color: Colors.red,
+                              color: Theme.of(context).colorScheme.error,
                             ),
                             onPressed: () {
                               removeFavorite(postId, context);

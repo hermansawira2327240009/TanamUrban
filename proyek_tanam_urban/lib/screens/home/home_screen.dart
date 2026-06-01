@@ -39,14 +39,14 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F8E9),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           'TanamUrban',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -128,12 +128,16 @@ class HomeScreen extends StatelessWidget {
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
                                 height: 190,
-                                color: Colors.green.shade100,
-                                child: const Center(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.08),
+                                child: Center(
                                   child: Icon(
                                     Icons.image_not_supported,
                                     size: 50,
-                                    color: Colors.green,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   ),
                                 ),
                               );
@@ -144,16 +148,18 @@ class HomeScreen extends StatelessWidget {
                         Container(
                           height: 190,
                           decoration: BoxDecoration(
-                            color: Colors.green.shade100,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.08),
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(18),
                             ),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Icon(
                               Icons.eco,
                               size: 60,
-                              color: Colors.green,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),
@@ -197,17 +203,21 @@ class HomeScreen extends StatelessWidget {
                               description,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Colors.black87),
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.color,
+                              ),
                             ),
 
                             const SizedBox(height: 10),
 
                             Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.location_on,
                                   size: 18,
-                                  color: Colors.red,
+                                  color: Theme.of(context).colorScheme.error,
                                 ),
                                 const SizedBox(width: 4),
                                 Expanded(
@@ -215,8 +225,11 @@ class HomeScreen extends StatelessWidget {
                                     locationName,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.black54,
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall?.color,
+                                      fontSize: 13,
                                     ),
                                   ),
                                 ),

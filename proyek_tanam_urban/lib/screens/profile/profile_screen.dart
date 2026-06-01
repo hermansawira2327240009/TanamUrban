@@ -71,13 +71,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
     );
   }
 
   void showSuccess(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 
@@ -100,7 +106,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: const Text('Profil'),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        foregroundColor: Colors.white,
+        foregroundColor: Theme.of(context).colorScheme.onBackground,
         centerTitle: true,
       ),
       body: StreamBuilder<DocumentSnapshot>(
@@ -134,10 +140,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 55,
-                  backgroundColor: Colors.green,
-                  child: Icon(Icons.person, size: 65, color: Colors.white),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  child: Icon(
+                    Icons.person,
+                    size: 65,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
                 ),
 
                 const SizedBox(height: 20),
@@ -173,7 +183,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.edit, color: Colors.green),
+                            Icon(
+                              Icons.edit,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                             const SizedBox(width: 8),
                             const Expanded(
                               child: Text(
@@ -201,7 +214,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             controller: nameController,
                             decoration: InputDecoration(
                               labelText: 'Nama Lengkap',
-                              prefixIcon: const Icon(Icons.person),
+                              prefixIcon: Icon(
+                                Icons.person,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -216,23 +232,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: ElevatedButton.icon(
                               onPressed: isSaving ? null : updateName,
                               icon: isSaving
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       height: 18,
                                       width: 18,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        color: Colors.white,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onPrimary,
                                       ),
                                     )
-                                  : const Icon(Icons.save),
+                                  : Icon(
+                                      Icons.save,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onPrimary,
+                                    ),
                               label: Text(
                                 isSaving ? 'Menyimpan...' : 'Simpan Perubahan',
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Theme.of(
                                   context,
-                                ).scaffoldBackgroundColor,
-                                foregroundColor: Colors.white,
+                                ).colorScheme.primary,
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimary,
                               ),
                             ),
                           ),
@@ -256,7 +281,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           themeProvider.isDarkMode
                               ? Icons.dark_mode
                               : Icons.light_mode,
-                          color: Colors.green,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                         title: const Text('Dark Mode'),
                         subtitle: const Text('Personalisasi tampilan aplikasi'),
@@ -269,10 +294,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const Divider(height: 1),
 
                       ListTile(
-                        leading: const Icon(Icons.logout, color: Colors.red),
-                        title: const Text(
+                        leading: Icon(
+                          Icons.logout,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        title: Text(
                           'Logout',
-                          style: TextStyle(color: Colors.red),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
                         ),
                         onTap: () => logout(context),
                       ),

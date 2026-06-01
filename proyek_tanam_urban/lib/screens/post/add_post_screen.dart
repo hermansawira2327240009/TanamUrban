@@ -275,13 +275,19 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
   void showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
     );
   }
 
   void showMessageSuccess(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 
@@ -297,11 +303,11 @@ class _AddPostScreenState extends State<AddPostScreen> {
     calculatePrediction();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F8E9),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Tambah Postingan'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -315,24 +321,28 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 height: 210,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.green.shade100,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: Colors.green),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
                 child: selectedImage == null
-                    ? const Column(
+                    ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
                             Icons.add_a_photo,
                             size: 50,
-                            color: Colors.green,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
                             'Pilih Foto Pohon/Buah',
                             style: TextStyle(
-                              color: Colors.green,
+                              color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -363,7 +373,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
               decoration: InputDecoration(
                 labelText: 'Nama Buah',
                 hintText: 'Contoh: Mangga, Rambutan, Pisang',
-                prefixIcon: const Icon(Icons.eco),
+                prefixIcon: Icon(
+                  Icons.eco,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -379,7 +392,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 labelText: 'Deskripsi',
                 hintText:
                     'Contoh: Pohon mangga di pinggir jalan sedang berbuah...',
-                prefixIcon: const Icon(Icons.description),
+                prefixIcon: Icon(
+                  Icons.description,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 alignLabelWithHint: true,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -393,7 +409,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
               value: selectedStatus,
               decoration: InputDecoration(
                 labelText: 'Status Kematangan',
-                prefixIcon: const Icon(Icons.spa),
+                prefixIcon: Icon(
+                  Icons.spa,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -433,8 +452,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
                       const SizedBox(height: 6),
                       Text(
                         'Latitude: $latitude\nLongitude: $longitude',
-                        style: const TextStyle(
-                          color: Colors.black54,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
                           fontSize: 13,
                         ),
                       ),
@@ -454,7 +473,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Icon(Icons.my_location),
+                            : Icon(
+                                Icons.my_location,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                         label: Text(
                           isGettingLocation
                               ? 'Mengambil Lokasi...'
@@ -470,7 +492,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
             const SizedBox(height: 16),
 
             Card(
-              color: Colors.green.shade50,
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.06),
               elevation: 2,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -480,7 +502,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.calendar_month, color: Colors.green),
+                    Icon(
+                      Icons.calendar_month,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -503,22 +528,25 @@ class _AddPostScreenState extends State<AddPostScreen> {
               child: ElevatedButton.icon(
                 onPressed: isLoading ? null : savePost,
                 icon: isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 18,
                         width: 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onPrimary,
                         ),
                       )
-                    : const Icon(Icons.cloud_upload),
+                    : Icon(
+                        Icons.cloud_upload,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
                 label: Text(
                   isLoading ? 'Menyimpan...' : 'Simpan Postingan',
                   style: const TextStyle(fontSize: 16),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),

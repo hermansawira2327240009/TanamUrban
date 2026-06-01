@@ -9,13 +9,8 @@ import 'package:url_launcher/url_launcher.dart';
 class DetailScreen extends StatefulWidget {
   final String postId;
   final Map<String, dynamic> postData;
-  
 
-  const DetailScreen({
-    super.key,
-    required this.postId,
-    required this.postData,
-  });
+  const DetailScreen({super.key, required this.postId, required this.postData});
 
   @override
   State<DetailScreen> createState() => _DetailScreenState();
@@ -68,10 +63,7 @@ class _DetailScreenState extends State<DetailScreen> {
     );
 
     if (await canLaunchUrl(googleMapsUrl)) {
-      await launchUrl(
-        googleMapsUrl,
-        mode: LaunchMode.externalApplication,
-      );
+      await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
     } else {
       showMessage('Tidak dapat membuka Google Maps');
     }
@@ -108,13 +100,13 @@ class _DetailScreenState extends State<DetailScreen> {
           .doc(widget.postId)
           .collection('comments')
           .add({
-        'userId': user.uid,
-        'userName': userName,
-        'userEmail': user.email,
-        'commentText': commentController.text.trim(),
-        'parentCommentId': null,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+            'userId': user.uid,
+            'userName': userName,
+            'userEmail': user.email,
+            'commentText': commentController.text.trim(),
+            'parentCommentId': null,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
 
       commentController.clear();
     } catch (e) {
@@ -128,10 +120,7 @@ class _DetailScreenState extends State<DetailScreen> {
 
   void showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
@@ -149,23 +138,26 @@ class _DetailScreenState extends State<DetailScreen> {
     final String description = data['description'] ?? '';
     final String imageBase64 = data['imageBase64'] ?? '';
     final String ripenessStatus = data['ripenessStatus'] ?? '-';
-    final String locationName = data['locationName'] ?? 'Lokasi tidak diketahui';
+    final String locationName =
+        data['locationName'] ?? 'Lokasi tidak diketahui';
     final String userName = data['userName'] ?? 'Pengguna';
     final String seasonDescription = data['seasonDescription'] ?? '-';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F8E9),
-            appBar: AppBar(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
         title: const Text('Detail Postingan'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         centerTitle: true,
         actions: [
           IconButton(
             onPressed: isFavoriteLoading ? null : toggleFavorite,
             icon: Icon(
               isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: isFavorite ? Colors.red : Colors.white,
+              color: isFavorite
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).colorScheme.onPrimary,
             ),
           ),
         ],
@@ -184,22 +176,26 @@ class _DetailScreenState extends State<DetailScreen> {
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         height: 240,
-                        color: Colors.green.shade100,
-                        child: const Icon(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withOpacity(0.08),
+                        child: Icon(
                           Icons.image_not_supported,
                           size: 60,
-                          color: Colors.green,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       );
                     },
                   )
                 : Container(
                     height: 240,
-                    color: Colors.green.shade100,
-                    child: const Icon(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.08),
+                    child: Icon(
                       Icons.eco,
                       size: 70,
-                      color: Colors.green,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
           ),
@@ -248,9 +244,11 @@ class _DetailScreenState extends State<DetailScreen> {
 
                   Row(
                     children: [
-                      const Icon(Icons.person, size: 18, color: Colors.green),
-                      const SizedBox(width: 6),
-                      Text('Diposting oleh $userName'),
+                      Icon(
+                        Icons.person,
+                        size: 18,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ],
                   ),
 
@@ -258,10 +256,7 @@ class _DetailScreenState extends State<DetailScreen> {
 
                   Text(
                     description,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      height: 1.4,
-                    ),
+                    style: const TextStyle(fontSize: 15, height: 1.4),
                   ),
                 ],
               ),
@@ -282,10 +277,7 @@ class _DetailScreenState extends State<DetailScreen> {
                 children: [
                   const Text(
                     'Lokasi',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
 
                   const SizedBox(height: 8),
@@ -295,9 +287,7 @@ class _DetailScreenState extends State<DetailScreen> {
                     children: [
                       const Icon(Icons.location_on, color: Colors.red),
                       const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(locationName),
-                      ),
+                      Expanded(child: Text(locationName)),
                     ],
                   ),
 
@@ -305,9 +295,8 @@ class _DetailScreenState extends State<DetailScreen> {
 
                   Text(
                     'Latitude: ${data['latitude'] ?? '-'}\nLongitude: ${data['longitude'] ?? '-'}',
-                    style: const TextStyle(
-                      color: Colors.black54,
-                      fontSize: 13,
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodySmall?.color,
                     ),
                   ),
 
@@ -320,8 +309,10 @@ class _DetailScreenState extends State<DetailScreen> {
                       icon: const Icon(Icons.map),
                       label: const Text('Buka di Google Maps'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
                       ),
                     ),
                   ),
@@ -333,7 +324,7 @@ class _DetailScreenState extends State<DetailScreen> {
           const SizedBox(height: 12),
 
           Card(
-            color: Colors.green.shade50,
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.06),
             elevation: 2,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
@@ -343,7 +334,10 @@ class _DetailScreenState extends State<DetailScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.calendar_month, color: Colors.green),
+                  Icon(
+                    Icons.calendar_month,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -365,10 +359,7 @@ class _DetailScreenState extends State<DetailScreen> {
 
           const Text(
             'Komentar',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
 
           const SizedBox(height: 10),
@@ -384,7 +375,7 @@ class _DetailScreenState extends State<DetailScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: Theme.of(context).cardColor,
                   ),
                 ),
               ),
@@ -392,18 +383,21 @@ class _DetailScreenState extends State<DetailScreen> {
               IconButton.filled(
                 onPressed: isSendingComment ? null : sendComment,
                 icon: isSendingComment
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 18,
                         width: 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onPrimary,
                         ),
                       )
-                    : const Icon(Icons.send),
+                    : Icon(
+                        Icons.send,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 ),
               ),
             ],
@@ -433,11 +427,13 @@ class _DetailScreenState extends State<DetailScreen> {
               }
 
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return const Padding(
+                return Padding(
                   padding: EdgeInsets.all(12),
                   child: Text(
                     'Belum ada komentar. Jadilah yang pertama berkomentar.',
-                    style: TextStyle(color: Colors.black54),
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
                   ),
                 );
               }
@@ -451,18 +447,16 @@ class _DetailScreenState extends State<DetailScreen> {
                   return Card(
                     margin: const EdgeInsets.only(bottom: 10),
                     child: ListTile(
-                      leading: const CircleAvatar(
-                        backgroundColor: Colors.green,
+                      leading: CircleAvatar(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                         child: Icon(
                           Icons.person,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onPrimary,
                         ),
                       ),
                       title: Text(
                         comment['userName'] ?? 'Pengguna',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(comment['commentText'] ?? ''),
                     ),
@@ -475,82 +469,83 @@ class _DetailScreenState extends State<DetailScreen> {
       ),
     );
   }
+
   @override
-void initState() {
-  super.initState();
-  checkFavoriteStatus();
-}
+  void initState() {
+    super.initState();
+    checkFavoriteStatus();
+  }
 
-Future<void> checkFavoriteStatus() async {
-  final User? user = FirebaseAuth.instance.currentUser;
+  Future<void> checkFavoriteStatus() async {
+    final User? user = FirebaseAuth.instance.currentUser;
 
-  if (user == null) {
+    if (user == null) {
+      setState(() {
+        isFavoriteLoading = false;
+      });
+      return;
+    }
+
+    final favoriteDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorites')
+        .doc(widget.postId)
+        .get();
+
     setState(() {
+      isFavorite = favoriteDoc.exists;
       isFavoriteLoading = false;
     });
-    return;
   }
 
-  final favoriteDoc = await FirebaseFirestore.instance
-      .collection('users')
-      .doc(user.uid)
-      .collection('favorites')
-      .doc(widget.postId)
-      .get();
+  Future<void> toggleFavorite() async {
+    final User? user = FirebaseAuth.instance.currentUser;
 
-  setState(() {
-    isFavorite = favoriteDoc.exists;
-    isFavoriteLoading = false;
-  });
-}
-
-Future<void> toggleFavorite() async {
-  final User? user = FirebaseAuth.instance.currentUser;
-
-  if (user == null) {
-    showMessage('User belum login');
-    return;
-  }
-
-  final favoriteRef = FirebaseFirestore.instance
-      .collection('users')
-      .doc(user.uid)
-      .collection('favorites')
-      .doc(widget.postId);
-
-  try {
-    if (isFavorite) {
-      await favoriteRef.delete();
-
-      setState(() {
-        isFavorite = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Dihapus dari favorit'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-    } else {
-      await favoriteRef.set({
-        'postId': widget.postId,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      setState(() {
-        isFavorite = true;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ditambahkan ke favorit'),
-          backgroundColor: Colors.green,
-        ),
-      );
+    if (user == null) {
+      showMessage('User belum login');
+      return;
     }
-  } catch (e) {
-    showMessage('Gagal mengubah favorit: $e');
+
+    final favoriteRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorites')
+        .doc(widget.postId);
+
+    try {
+      if (isFavorite) {
+        await favoriteRef.delete();
+
+        setState(() {
+          isFavorite = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Dihapus dari favorit'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      } else {
+        await favoriteRef.set({
+          'postId': widget.postId,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+
+        setState(() {
+          isFavorite = true;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Ditambahkan ke favorit'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+      }
+    } catch (e) {
+      showMessage('Gagal mengubah favorit: $e');
+    }
   }
-}
 }
