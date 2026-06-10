@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../post/edit_post_screen.dart';
+
 class DetailScreen extends StatefulWidget {
   final String postId;
   final Map<String, dynamic> postData;
@@ -136,9 +138,11 @@ class _DetailScreenState extends State<DetailScreen> {
       showMessage('Gagal mengirim komentar: $e');
     }
 
-    setState(() {
-      isSendingComment = false;
-    });
+    if (mounted) {
+      setState(() {
+        isSendingComment = false;
+      });
+    }
   }
 
   Future<void> checkFavoriteStatus() async {
@@ -158,10 +162,12 @@ class _DetailScreenState extends State<DetailScreen> {
         .doc(widget.postId)
         .get();
 
-    setState(() {
-      isFavorite = favoriteDoc.exists;
-      isFavoriteLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        isFavorite = favoriteDoc.exists;
+        isFavoriteLoading = false;
+      });
+    }
   }
 
   Future<void> toggleFavorite() async {
@@ -218,6 +224,86 @@ class _DetailScreenState extends State<DetailScreen> {
     }
   }
 
+  Future<void> confirmDeletePost() async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Hapus Postingan'),
+          content: const Text(
+            'Apakah kamu yakin ingin menghapus postingan ini? Komentar pada postingan juga akan ikut dihapus.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: Theme.of(context).colorScheme.onError,
+              ),
+              child: const Text('Hapus'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      deletePost();
+    }
+  }
+
+  Future<void> deletePost() async {
+    final User? user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      showMessage('User belum login');
+      return;
+    }
+
+    if (widget.postData['userId'] != user.uid) {
+      showMessage('Kamu hanya bisa menghapus postingan milik sendiri');
+      return;
+    }
+
+    try {
+      final postRef =
+          FirebaseFirestore.instance.collection('posts').doc(widget.postId);
+
+      final commentsSnapshot = await postRef.collection('comments').get();
+
+      final batch = FirebaseFirestore.instance.batch();
+
+      for (final doc in commentsSnapshot.docs) {
+        batch.delete(doc.reference);
+      }
+
+      batch.delete(postRef);
+
+      await batch.commit();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Posting berhasil dihapus'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      showMessage('Gagal menghapus posting: $e');
+    }
+  }
+
   void showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -246,6 +332,10 @@ class _DetailScreenState extends State<DetailScreen> {
     final String userName = data['userName'] ?? 'Pengguna';
     final String seasonDescription = data['seasonDescription'] ?? '-';
 
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    final bool isOwner =
+        currentUser != null && data['userId'] == currentUser.uid;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -263,6 +353,67 @@ class _DetailScreenState extends State<DetailScreen> {
                   : Theme.of(context).colorScheme.onPrimary,
             ),
           ),
+
+          if (isOwner)
+            PopupMenuButton<String>(
+              icon: Icon(
+                Icons.more_vert,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
+              onSelected: (value) async {
+                if (value == 'edit') {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditPostScreen(
+                        postId: widget.postId,
+                        postData: widget.postData,
+                      ),
+                    ),
+                  );
+
+                  if (result == true && mounted) {
+                    Navigator.pop(context);
+                  }
+                }
+
+                if (value == 'delete') {
+                  confirmDeletePost();
+                }
+              },
+              itemBuilder: (context) {
+                return [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit),
+                        SizedBox(width: 8),
+                        Text('Edit Postingan'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.delete,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Hapus Postingan',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ];
+              },
+            ),
         ],
       ),
       body: ListView(
@@ -306,6 +457,37 @@ class _DetailScreenState extends State<DetailScreen> {
           ),
 
           const SizedBox(height: 16),
+
+          if (isOwner)
+            Card(
+              color: Theme.of(context)
+                  .colorScheme
+                  .primary
+                  .withValues(alpha: 0.06),
+              elevation: 1,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.verified_user,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Ini adalah postingan milik kamu. Kamu bisa mengedit atau menghapus melalui tombol titik tiga di kanan atas.',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          if (isOwner) const SizedBox(height: 12),
 
           Card(
             elevation: 2,
