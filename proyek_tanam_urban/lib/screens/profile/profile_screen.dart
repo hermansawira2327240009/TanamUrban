@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'my_posts_screen.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
@@ -39,9 +40,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .collection('users')
           .doc(user.uid)
           .update({
-            'name': nameController.text.trim(),
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
+        'name': nameController.text.trim(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
 
       setState(() {
         isEditing = false;
@@ -52,9 +53,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       showMessage('Gagal memperbarui profil: $e');
     }
 
-    setState(() {
-      isSaving = false;
-    });
+    if (mounted) {
+      setState(() {
+        isSaving = false;
+      });
+    }
   }
 
   void logout(BuildContext context) async {
@@ -63,7 +66,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (context.mounted) {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        MaterialPageRoute(
+          builder: (context) => const LoginScreen(),
+        ),
         (route) => false,
       );
     }
@@ -99,7 +104,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     if (user == null) {
-      return const Scaffold(body: Center(child: Text('User belum login')));
+      return const Scaffold(
+        body: Center(
+          child: Text('User belum login'),
+        ),
+      );
     }
 
     return Scaffold(
@@ -116,15 +125,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('Gagal memuat profil'));
+            return const Center(
+              child: Text('Gagal memuat profil'),
+            );
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
           }
 
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text('Data profil tidak ditemukan'));
+            return const Center(
+              child: Text('Data profil tidak ditemukan'),
+            );
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
@@ -276,6 +291,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: Column(
                     children: [
+                      ListTile(
+                        leading: Icon(
+                          Icons.article,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        title: const Text('Postingan Saya'),
+                        subtitle: const Text(
+                          'Lihat daftar postingan yang kamu buat',
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MyPostsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+
+                      const Divider(height: 1),
+
                       SwitchListTile(
                         secondary: Icon(
                           themeProvider.isDarkMode
@@ -284,7 +321,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           color: Theme.of(context).colorScheme.primary,
                         ),
                         title: const Text('Dark Mode'),
-                        subtitle: const Text('Personalisasi tampilan aplikasi'),
+                        subtitle: const Text(
+                          'Personalisasi tampilan aplikasi',
+                        ),
                         value: themeProvider.isDarkMode,
                         onChanged: (value) {
                           themeProvider.toggleTheme(value);
