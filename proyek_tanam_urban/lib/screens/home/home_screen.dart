@@ -1,6 +1,9 @@
 import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
 import '../detail/detail_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -16,24 +19,56 @@ class HomeScreen extends StatelessWidget {
         return 'Siap Panen';
       case 'sudah_dipetik':
         return 'Sudah Dipetik';
-      default:
+      case 'tidak_berbuah':
+        return 'Tidak Berbuah';
+
+      case 'Belum Matang':
+      case 'Matang Sebagian':
+      case 'Siap Panen':
+      case 'Sudah Dipetik':
+      case 'Tidak Berbuah':
         return status;
+
+      default:
+        return status.isEmpty ? 'Status tidak diketahui' : status;
     }
   }
 
   Color getStatusColor(String status) {
     switch (status) {
       case 'belum_matang':
+      case 'Belum Matang':
         return Colors.orange;
+
       case 'matang_sebagian':
+      case 'Matang Sebagian':
         return Colors.amber;
+
       case 'siap_panen':
+      case 'Siap Panen':
         return Colors.green;
+
       case 'sudah_dipetik':
+      case 'Sudah Dipetik':
         return Colors.grey;
+
+      case 'tidak_berbuah':
+      case 'Tidak Berbuah':
+        return Colors.brown;
+
       default:
         return Colors.blueGrey;
     }
+  }
+
+  String formatDate(dynamic timestamp) {
+    if (timestamp == null) return '-';
+
+    if (timestamp is Timestamp) {
+      return DateFormat('dd MMM yyyy', 'id_ID').format(timestamp.toDate());
+    }
+
+    return '-';
   }
 
   @override
@@ -62,17 +97,42 @@ class HomeScreen extends StatelessWidget {
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                  'Belum ada posting.\nTambahkan lokasi pohon buah atau hasil kebun pertama kamu.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16),
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.eco,
+                      size: 80,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Belum ada posting',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tambahkan lokasi pohon buah atau hasil kebun pertama kamu.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -84,29 +144,33 @@ class HomeScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             itemCount: posts.length,
             itemBuilder: (context, index) {
-              final data = posts[index].data() as Map<String, dynamic>;
+              final postDoc = posts[index];
+              final data = postDoc.data() as Map<String, dynamic>;
 
-              final fruitName = data['fruitName'] ?? 'Tanpa Nama';
-              final description = data['description'] ?? '';
-              final imageBase64 = data['imageBase64'] ?? '';
-              final ripenessStatus = data['ripenessStatus'] ?? '';
-              final locationName =
+              final String postId = postDoc.id;
+              final String fruitName = data['fruitName'] ?? 'Tanpa Nama';
+              final String description = data['description'] ?? '';
+              final String imageBase64 = data['imageBase64'] ?? '';
+              final String ripenessStatus = data['ripenessStatus'] ?? '';
+              final String locationName =
                   data['locationName'] ?? 'Lokasi tidak diketahui';
+              final String userName = data['userName'] ?? 'Pengguna';
+              final String postingDate = formatDate(data['createdAt']);
 
               return Card(
-                margin: const EdgeInsets.only(bottom: 16),
+                margin: const EdgeInsets.only(bottom: 18),
                 elevation: 3,
+                clipBehavior: Clip.antiAlias,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(18),
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => DetailScreen(
-                          postId: posts[index].id,
+                          postId: postId,
                           postData: data,
                         ),
                       ),
@@ -115,54 +179,73 @@ class HomeScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (imageBase64.isNotEmpty)
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(18),
-                          ),
-                          child: Image.memory(
-                            base64Decode(imageBase64),
-                            width: double.infinity,
-                            height: 190,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                height: 190,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withValues(alpha: 0.08),
-                                child: Center(
-                                  child: Icon(
-                                    Icons.image_not_supported,
-                                    size: 50,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
+                      Stack(
+                        children: [
+                          if (imageBase64.isNotEmpty)
+                            Image.memory(
+                              base64Decode(imageBase64),
+                              width: double.infinity,
+                              height: 200,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  height: 200,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withValues(alpha: 0.08),
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.image_not_supported,
+                                      size: 50,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                    ),
                                   ),
+                                );
+                              },
+                            )
+                          else
+                            Container(
+                              height: 200,
+                              width: double.infinity,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.08),
+                              child: Center(
+                                child: Icon(
+                                  Icons.eco,
+                                  size: 60,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
-                              );
-                            },
-                          ),
-                        )
-                      else
-                        Container(
-                          height: 190,
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.08),
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(18),
+                              ),
+                            ),
+
+                          Positioned(
+                            top: 12,
+                            left: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: getStatusColor(ripenessStatus),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                formatStatus(ripenessStatus),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
-                          child: Center(
-                            child: Icon(
-                              Icons.eco,
-                              size: 60,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                        ),
+                        ],
+                      ),
 
                       Padding(
                         padding: const EdgeInsets.all(16),
@@ -171,8 +254,10 @@ class HomeScreen extends StatelessWidget {
                           children: [
                             Text(
                               fruitName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                fontSize: 20,
+                                fontSize: 21,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -182,58 +267,164 @@ class HomeScreen extends StatelessWidget {
                             Row(
                               children: [
                                 Icon(
-                                  Icons.circle,
-                                  size: 12,
-                                  color: getStatusColor(ripenessStatus),
+                                  Icons.person,
+                                  size: 17,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  formatStatus(ripenessStatus),
-                                  style: TextStyle(
-                                    color: getStatusColor(ripenessStatus),
-                                    fontWeight: FontWeight.w600,
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: Text(
+                                    userName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.color,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
 
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 10),
 
                             Text(
                               description,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium?.color,
+                                height: 1.4,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.color,
                               ),
                             ),
 
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
 
                             Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Icon(
                                   Icons.location_on,
                                   size: 18,
                                   color: Theme.of(context).colorScheme.error,
                                 ),
-                                const SizedBox(width: 4),
+                                const SizedBox(width: 5),
                                 Expanded(
                                   child: Text(
                                     locationName,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall?.color,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.color,
                                       fontSize: 13,
                                     ),
                                   ),
                                 ),
                               ],
+                            ),
+
+                            const SizedBox(height: 14),
+
+                            Divider(
+                              color: Theme.of(context)
+                                  .dividerColor
+                                  .withValues(alpha: 0.4),
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.calendar_today,
+                                  size: 16,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  postingDate == '-'
+                                      ? 'Tanggal tidak tersedia'
+                                      : postingDate,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
+                                  ),
+                                ),
+
+                                const Spacer(),
+
+                                StreamBuilder<QuerySnapshot>(
+                                  stream: FirebaseFirestore.instance
+                                      .collection('posts')
+                                      .doc(postId)
+                                      .collection('comments')
+                                      .snapshots(),
+                                  builder: (context, commentSnapshot) {
+                                    int commentCount = 0;
+
+                                    if (commentSnapshot.hasData) {
+                                      commentCount =
+                                          commentSnapshot.data!.docs.length;
+                                    }
+
+                                    return Row(
+                                      children: [
+                                        Icon(
+                                          Icons.comment,
+                                          size: 16,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          '$commentCount Komentar',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.color,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => DetailScreen(
+                                        postId: postId,
+                                        postData: data,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.visibility),
+                                label: const Text('Lihat Detail'),
+                              ),
                             ),
                           ],
                         ),
