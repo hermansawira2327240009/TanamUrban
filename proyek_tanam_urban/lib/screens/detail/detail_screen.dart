@@ -10,7 +10,11 @@ class DetailScreen extends StatefulWidget {
   final String postId;
   final Map<String, dynamic> postData;
 
-  const DetailScreen({super.key, required this.postId, required this.postData});
+  const DetailScreen({
+    super.key,
+    required this.postId,
+    required this.postData,
+  });
 
   @override
   State<DetailScreen> createState() => _DetailScreenState();
@@ -18,9 +22,19 @@ class DetailScreen extends StatefulWidget {
 
 class _DetailScreenState extends State<DetailScreen> {
   final TextEditingController commentController = TextEditingController();
+
   bool isSendingComment = false;
   bool isFavorite = false;
   bool isFavoriteLoading = true;
+
+  String? replyingToCommentId;
+  String? replyingToUserName;
+
+  @override
+  void initState() {
+    super.initState();
+    checkFavoriteStatus();
+  }
 
   String formatDate(dynamic timestamp) {
     if (timestamp == null) return '-';
@@ -63,7 +77,10 @@ class _DetailScreenState extends State<DetailScreen> {
     );
 
     if (await canLaunchUrl(googleMapsUrl)) {
-      await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+      await launchUrl(
+        googleMapsUrl,
+        mode: LaunchMode.externalApplication,
+      );
     } else {
       showMessage('Tidak dapat membuka Google Maps');
     }
@@ -100,15 +117,21 @@ class _DetailScreenState extends State<DetailScreen> {
           .doc(widget.postId)
           .collection('comments')
           .add({
-            'userId': user.uid,
-            'userName': userName,
-            'userEmail': user.email,
-            'commentText': commentController.text.trim(),
-            'parentCommentId': null,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
+        'userId': user.uid,
+        'userName': userName,
+        'userEmail': user.email,
+        'commentText': commentController.text.trim(),
+        'parentCommentId': replyingToCommentId,
+        'replyingToUserName': replyingToUserName,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       commentController.clear();
+
+      setState(() {
+        replyingToCommentId = null;
+        replyingToUserName = null;
+      });
     } catch (e) {
       showMessage('Gagal mengirim komentar: $e');
     }
@@ -118,9 +141,89 @@ class _DetailScreenState extends State<DetailScreen> {
     });
   }
 
+  Future<void> checkFavoriteStatus() async {
+    final User? user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      setState(() {
+        isFavoriteLoading = false;
+      });
+      return;
+    }
+
+    final favoriteDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorites')
+        .doc(widget.postId)
+        .get();
+
+    setState(() {
+      isFavorite = favoriteDoc.exists;
+      isFavoriteLoading = false;
+    });
+  }
+
+  Future<void> toggleFavorite() async {
+    final User? user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      showMessage('User belum login');
+      return;
+    }
+
+    final favoriteRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorites')
+        .doc(widget.postId);
+
+    try {
+      if (isFavorite) {
+        await favoriteRef.delete();
+
+        setState(() {
+          isFavorite = false;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Dihapus dari favorit'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      } else {
+        await favoriteRef.set({
+          'postId': widget.postId,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+
+        setState(() {
+          isFavorite = true;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Ditambahkan ke favorit'),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      showMessage('Gagal mengubah favorit: $e');
+    }
+  }
+
   void showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
     );
   }
 
@@ -176,9 +279,10 @@ class _DetailScreenState extends State<DetailScreen> {
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         height: 240,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primary.withValues(alpha: 0.08),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.08),
                         child: Icon(
                           Icons.image_not_supported,
                           size: 60,
@@ -189,9 +293,10 @@ class _DetailScreenState extends State<DetailScreen> {
                   )
                 : Container(
                     height: 240,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.08),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.08),
                     child: Icon(
                       Icons.eco,
                       size: 70,
@@ -249,6 +354,10 @@ class _DetailScreenState extends State<DetailScreen> {
                         size: 18,
                         color: Theme.of(context).colorScheme.primary,
                       ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text('Diposting oleh $userName'),
+                      ),
                     ],
                   ),
 
@@ -256,7 +365,10 @@ class _DetailScreenState extends State<DetailScreen> {
 
                   Text(
                     description,
-                    style: const TextStyle(fontSize: 15, height: 1.4),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      height: 1.4,
+                    ),
                   ),
                 ],
               ),
@@ -277,7 +389,10 @@ class _DetailScreenState extends State<DetailScreen> {
                 children: [
                   const Text(
                     'Lokasi',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
 
                   const SizedBox(height: 8),
@@ -287,7 +402,9 @@ class _DetailScreenState extends State<DetailScreen> {
                     children: [
                       const Icon(Icons.location_on, color: Colors.red),
                       const SizedBox(width: 6),
-                      Expanded(child: Text(locationName)),
+                      Expanded(
+                        child: Text(locationName),
+                      ),
                     ],
                   ),
 
@@ -310,9 +427,8 @@ class _DetailScreenState extends State<DetailScreen> {
                       label: const Text('Buka di Google Maps'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onPrimary,
+                        foregroundColor:
+                            Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),
                   ),
@@ -324,7 +440,10 @@ class _DetailScreenState extends State<DetailScreen> {
           const SizedBox(height: 12),
 
           Card(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
+            color: Theme.of(context)
+                .colorScheme
+                .primary
+                .withValues(alpha: 0.06),
             elevation: 2,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
@@ -359,10 +478,54 @@ class _DetailScreenState extends State<DetailScreen> {
 
           const Text(
             'Komentar',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
 
           const SizedBox(height: 10),
+
+          if (replyingToCommentId != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.25),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Membalas komentar dari $replyingToUserName',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        replyingToCommentId = null;
+                        replyingToUserName = null;
+                      });
+                    },
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+            ),
 
           Row(
             children: [
@@ -370,7 +533,9 @@ class _DetailScreenState extends State<DetailScreen> {
                 child: TextField(
                   controller: commentController,
                   decoration: InputDecoration(
-                    hintText: 'Tulis komentar...',
+                    hintText: replyingToCommentId == null
+                        ? 'Tulis komentar...'
+                        : 'Tulis balasan...',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -410,7 +575,7 @@ class _DetailScreenState extends State<DetailScreen> {
                 .collection('posts')
                 .doc(widget.postId)
                 .collection('comments')
-                .orderBy('createdAt', descending: true)
+                .orderBy('createdAt', descending: false)
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
@@ -428,7 +593,7 @@ class _DetailScreenState extends State<DetailScreen> {
 
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                 return Padding(
-                  padding: EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   child: Text(
                     'Belum ada komentar. Jadilah yang pertama berkomentar.',
                     style: TextStyle(
@@ -440,25 +605,133 @@ class _DetailScreenState extends State<DetailScreen> {
 
               final comments = snapshot.data!.docs;
 
+              final mainComments = comments.where((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                return data['parentCommentId'] == null;
+              }).toList();
+
+              final replies = comments.where((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                return data['parentCommentId'] != null;
+              }).toList();
+
               return Column(
-                children: comments.map((doc) {
+                children: mainComments.map((doc) {
                   final comment = doc.data() as Map<String, dynamic>;
+                  final commentId = doc.id;
+
+                  final commentReplies = replies.where((replyDoc) {
+                    final replyData =
+                        replyDoc.data() as Map<String, dynamic>;
+                    return replyData['parentCommentId'] == commentId;
+                  }).toList();
 
                   return Card(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        child: Icon(
-                          Icons.person,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: CircleAvatar(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              child: Icon(
+                                Icons.person,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                            ),
+                            title: Text(
+                              comment['userName'] ?? 'Pengguna',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(comment['commentText'] ?? ''),
+                          ),
+
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  replyingToCommentId = commentId;
+                                  replyingToUserName =
+                                      comment['userName'] ?? 'Pengguna';
+                                });
+                              },
+                              icon: const Icon(Icons.reply, size: 18),
+                              label: const Text('Balas'),
+                            ),
+                          ),
+
+                          if (commentReplies.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                left: 36,
+                                top: 4,
+                              ),
+                              child: Column(
+                                children: commentReplies.map((replyDoc) {
+                                  final reply = replyDoc.data()
+                                      as Map<String, dynamic>;
+
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .surfaceContainerHighest,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 15,
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          child: Icon(
+                                            Icons.person,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onPrimary,
+                                            size: 18,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                reply['userName'] ??
+                                                    'Pengguna',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 3),
+                                              Text(
+                                                reply['commentText'] ?? '',
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                        ],
                       ),
-                      title: Text(
-                        comment['userName'] ?? 'Pengguna',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(comment['commentText'] ?? ''),
                     ),
                   );
                 }).toList(),
@@ -468,84 +741,5 @@ class _DetailScreenState extends State<DetailScreen> {
         ],
       ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    checkFavoriteStatus();
-  }
-
-  Future<void> checkFavoriteStatus() async {
-    final User? user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      setState(() {
-        isFavoriteLoading = false;
-      });
-      return;
-    }
-
-    final favoriteDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('favorites')
-        .doc(widget.postId)
-        .get();
-
-    setState(() {
-      isFavorite = favoriteDoc.exists;
-      isFavoriteLoading = false;
-    });
-  }
-
-  Future<void> toggleFavorite() async {
-    final User? user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      showMessage('User belum login');
-      return;
-    }
-
-    final favoriteRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('favorites')
-        .doc(widget.postId);
-
-    try {
-      if (isFavorite) {
-        await favoriteRef.delete();
-
-        setState(() {
-          isFavorite = false;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Dihapus dari favorit'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      } else {
-        await favoriteRef.set({
-          'postId': widget.postId,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-
-        setState(() {
-          isFavorite = true;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Ditambahkan ke favorit'),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-          ),
-        );
-      }
-    } catch (e) {
-      showMessage('Gagal mengubah favorit: $e');
-    }
   }
 }
