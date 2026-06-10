@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -26,7 +24,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
   final ImagePicker picker = ImagePicker();
 
-  File? selectedImage;
+  Uint8List? selectedImageBytes;
   String? base64Image;
   String? selectedStatus;
 
@@ -49,42 +47,33 @@ class _AddPostScreenState extends State<AddPostScreen> {
   ];
 
   Future<void> pickImage() async {
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 60,
-    );
-
-    if (image == null) return;
-
-    final File imageFile = File(image.path);
-
-    final Uint8List? compressedBytes =
-        await FlutterImageCompress.compressWithFile(
-          imageFile.absolute.path,
-          minWidth: 600,
-          minHeight: 600,
-          quality: 45,
-          format: CompressFormat.jpeg,
-        );
-
-    if (compressedBytes == null) {
-      showMessage('Gagal mengompres gambar');
-      return;
-    }
-
-    final String encodedImage = base64Encode(compressedBytes);
-
-    if (encodedImage.length > 900000) {
-      showMessage(
-        'Ukuran foto masih terlalu besar. Pilih foto yang lebih kecil.',
+    try {
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 35,
+        maxWidth: 700,
+        maxHeight: 700,
       );
-      return;
-    }
 
-    setState(() {
-      selectedImage = imageFile;
-      base64Image = encodedImage;
-    });
+      if (image == null) return;
+
+      final Uint8List imageBytes = await image.readAsBytes();
+      final String encodedImage = base64Encode(imageBytes);
+
+      if (encodedImage.length > 900000) {
+        showMessage(
+          'Ukuran foto masih terlalu besar. Pilih foto yang lebih kecil.',
+        );
+        return;
+      }
+
+      setState(() {
+        selectedImageBytes = imageBytes;
+        base64Image = encodedImage;
+      });
+    } catch (e) {
+      showMessage('Gagal memilih gambar: $e');
+    }
   }
 
   Future<void> getCurrentLocation() async {
@@ -262,7 +251,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
     descriptionController.clear();
 
     setState(() {
-      selectedImage = null;
+      selectedImageBytes = null;
       base64Image = null;
       selectedStatus = null;
       latitude = null;
@@ -329,7 +318,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                child: selectedImage == null
+                child: selectedImageBytes == null
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -350,8 +339,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
                       )
                     : ClipRRect(
                         borderRadius: BorderRadius.circular(18),
-                        child: Image.file(
-                          selectedImage!,
+                        child: Image.memory(
+                          selectedImageBytes!,
                           width: double.infinity,
                           height: 210,
                           fit: BoxFit.cover,
@@ -418,7 +407,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 ),
               ),
               items: ripenessStatuses.map((status) {
-                return DropdownMenuItem(value: status, child: Text(status));
+                return DropdownMenuItem(
+                  value: status,
+                  child: Text(status),
+                );
               }).toList(),
               onChanged: (value) {
                 setState(() {
@@ -462,9 +454,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: isGettingLocation
-                            ? null
-                            : getCurrentLocation,
+                        onPressed:
+                            isGettingLocation ? null : getCurrentLocation,
                         icon: isGettingLocation
                             ? const SizedBox(
                                 height: 18,
@@ -492,7 +483,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
             const SizedBox(height: 16),
 
             Card(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.06),
               elevation: 2,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
