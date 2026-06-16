@@ -7,6 +7,8 @@ import 'screens/auth/login_screen.dart';
 import 'screens/main/main_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/theme_provider.dart';
+import 'screens/splash/splash_screen.dart';
+import 'screens/splash/auth_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,32 +54,7 @@ class TanamUrbanApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF121212),
         useMaterial3: true,
       ),
-      home: const AuthWrapper(),
-    );
-  }
-}
-
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (snapshot.hasData) {
-          Provider.of<ThemeProvider>(context, listen: false).loadTheme();
-          return const MainScreen();
-        }
-
-        return const LoginScreen();
-      },
+      home: const SplashScreen(),
     );
   }
 }
